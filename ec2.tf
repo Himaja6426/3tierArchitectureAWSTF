@@ -1,6 +1,6 @@
 # Creating 1st EC2 instance in Public Subnet
 resource "aws_instance" "demoinstance" {
-  ami                         = "ami-087c17d1fe0178315"
+  ami                         = "ami-026b57f3c383c2eec"
   instance_type               = "t2.micro"
   count                       = 1
   key_name                    = "tests"
@@ -16,7 +16,7 @@ resource "aws_instance" "demoinstance" {
 
 # Creating 2nd EC2 instance in Public Subnet
 resource "aws_instance" "demoinstance1" {
-  ami                         = "ami-087c17d1fe0178315"
+  ami                         = "ami-026b57f3c383c2eec"
   instance_type               = "t2.micro"
   count                       = 1
   key_name                    = "tests"
