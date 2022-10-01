@@ -1,6 +1,6 @@
 # Creating External LoadBalancer
 resource "aws_lb" "external-alb" {
-  name               = "External LB"
+  name               = "ExternalLB"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.demosg.id]
@@ -8,7 +8,7 @@ resource "aws_lb" "external-alb" {
 }
 
 resource "aws_lb_target_group" "target-elb" {
-  name     = "ALB TG"
+  name     = "ALBTG"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.demovpc.id
@@ -20,7 +20,7 @@ resource "aws_lb_target_group_attachment" "attachment" {
   port             = 80
 
   depends_on = [
-    aws_instance.demoinstance,
+    data.aws_instance.demoinstance,
   ]
 }
 
@@ -41,6 +41,6 @@ resource "aws_lb_listener" "external-elb" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.external-alb.arn
+    target_group_arn = data.aws_lb_target_group.external-alb.arn
   }
 }
