@@ -1,46 +1,50 @@
-# Creating External LoadBalancer
-resource "aws_lb" "external-alb" {
-  name               = "ExternalLB"
+resource "aws_lb" "alb" {
+  name               = "test-lb-tf"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.demosg.id]
-  subnets            = [aws_subnet.public-subnet-1.id, aws_subnet.public-subnet-1.id]
+  security_groups    = [aws_security_group.allow_tls.id]
+  subnets            = [for subnet in aws_subnet.public : subnet.id]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Environment = "test"
+  }
 }
 
-resource "aws_lb_target_group" "target-elb" {
-  name     = "ALBTG"
+//Target Group
+resource "aws_lb_target_group" "albtg" {
+  name     = "tf-example-lb-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.demovpc.id
+  target_type = "instance"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {    
+    healthy_threshold   = 3    
+    unhealthy_threshold = 10    
+    timeout             = 5    
+    interval            = 10    
+    path                = "/"    
+    port                = 80  
+  }
 }
 
-resource "aws_lb_target_group_attachment" "attachment" {
-  target_group_arn = aws_lb_target_group.external-alb.arn
-  target_id        = aws_instance.demoinstance.id
+resource "aws_lb_target_group_attachment" "front_end" {
+  target_group_arn = aws_lb_target_group.albtg.arn
+  target_id        = aws_instance.web[count.index].id
   port             = 80
-
-  depends_on = [
-    data.aws_instance.demoinstance,
-  ]
+  count = 2
 }
 
-resource "aws_lb_target_group_attachment" "attachment1" {
-  target_group_arn = aws_lb_target_group.external-alb.arn
-  target_id        = aws_instance.demoinstance1.id
-  port             = 80
-
-  depends_on = [
-    aws_instance.demoinstance1,
-  ]
-}
-
-resource "aws_lb_listener" "external-elb" {
-  load_balancer_arn = aws_lb.external-alb.arn
+//Listener
+resource "aws_lb_listener" "albl" {
+  load_balancer_arn = aws_lb.alb.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = data.aws_lb_target_group.external-alb.arn
+    target_group_arn = aws_lb_target_group.albtg.arn
   }
 }

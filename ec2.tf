@@ -1,31 +1,37 @@
-# Creating 1st EC2 instance in Public Subnet
-resource "aws_instance" "demoinstance" {
-  ami                         = "ami-026b57f3c383c2eec"
-  instance_type               = "t2.micro"
-  count                       = 1
-  key_name                    = "tests"
-  vpc_security_group_ids      = ["${aws_security_group.demosg.id}"]
-  subnet_id                   = "${aws_subnet.demoinstance.id}"
+resource "aws_instance" "web" {
+  ami           = "ami-08df646e18b182346"
+  instance_type = "t2.micro"
+  key_name = "pswain"
+  subnet_id = aws_subnet.public[count.index].id
+  vpc_security_group_ids = [aws_security_group.allow_tls.id]
   associate_public_ip_address = true
-  user_data                   = "${file("data.sh")}"
+  count = 2
 
   tags = {
-    Name = "My Public Instance"
+    Name = "WebServer"
+  }
+
+  provisioner "file" {
+    source = "./pswain.pem"
+    destination = "/home/ec2-user/pswain.pem"
+  
+    connection {
+      type = "ssh"
+      host = self.public_ip
+      user = "ec2-user"
+      private_key = "${file("./pswain.pem")}"
+    }  
   }
 }
 
-# Creating 2nd EC2 instance in Public Subnet
-resource "aws_instance" "demoinstance1" {
-  ami                         = "ami-026b57f3c383c2eec"
-  instance_type               = "t2.micro"
-  count                       = 1
-  key_name                    = "tests"
-  vpc_security_group_ids      = ["${aws_security_group.demosg.id}"]
-  subnet_id                   = "${aws_subnet.demoinstance.id}"
-  associate_public_ip_address = true
-  user_data                   = "${file("data.sh")}"
+resource "aws_instance" "db" {
+  ami           = "ami-08df646e18b182346"
+  instance_type = "t2.micro"
+  key_name = "pswain"
+  subnet_id = aws_subnet.private.id
+  vpc_security_group_ids = [aws_security_group.allow_tls_db.id]
 
   tags = {
-    Name = "My Public Instance 2"
+    Name = "DB Server"
   }
 }
