@@ -12,14 +12,14 @@ resource "aws_instance" "web" {
   }
 
   provisioner "file" {
-    source = "./test1.pem"
+    source = "./root/.ssh/test1.pem"
     destination = "/home/ec2-user/test1.pem"
   
     connection {
       type = "ssh"
       host = self.public_ip
       user = "ec2-user"
-      private_key = "${file("*.pem")}"
+      private_key = "${file("/root/.ssh/test1.pem")}"
     }  
   }
 }
